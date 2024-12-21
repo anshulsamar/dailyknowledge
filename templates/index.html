@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <title>Knowledge Sheet of the Day</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Work+Sans&display=swap');
+
+        body {
+            margin: 0;
+            padding: 20px 20px; /* Increased space between top/bottom of box and page */
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f9f9f6; /* off-white background */
+            font-family: 'Work+Sans', serif;
+            position: relative;
+            overflow-y: hidden;
+        }
+
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .language-selector select {
+            font-family: 'Work+Sans', serif;
+            font-size: 1rem;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+            outline: none;
+        }
+
+        .knowledge-box {
+            background-color: rgb(255, 255, 255);
+            padding: 20px 40px 40px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 600px;
+            max-height: calc(100vh - 200px); /* Ensures more bottom space */
+            border: 4px solid rgba(177, 97, 0, 0.643); /* Lighter border color extracted */
+            position: relative;
+            overflow-y: scroll; /* Scrollbar appears when content overflows */
+        }
+
+        .knowledge-box .knowledge-title {
+            font-size: 1.8rem;
+            font-weight: normal;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            color: #333;
+            font-family: 'Work+Sans', serif; /* More elegant title font */
+        }
+
+        .knowledge-box p {
+            margin: 0;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            color: #333; /* Slightly lighter text color */ 
+        }
+
+        #date #location #signature #book {
+            color: #949191;
+        }
+
+        a {
+            color: #555
+        }
+        
+        .audio-player {
+            margin-top: 50px;
+            margin-bottom: 30px;
+        }
+
+        audio::-webkit-media-controls-play-button,
+        audio::-webkit-media-controls-panel {
+        background-color: #fff;
+        color: #fff;
+        
+        }
+
+        .audio-player audio {
+            width: 100%;
+            height: 20px; /* Minimalist player */
+        }
+    </style>
+</head>
+<body>
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <select id="languageSelect" onchange="changeLanguage()">
+            <option value="en">English</option>
+            <option value="hi">Hindi</option>
+        </select>
+    </div>
+
+    <div class="knowledge-box" id="box">
+        <!-- Title -->
+        <div class="knowledge-title" id="knowledgeTitle"></div>
+
+        <!-- Audio Player -->
+        <div class="audio-player">
+            <audio controls id="knowledgeAudio">
+                <source id="audioSource" src="" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+
+        <!-- Knowledge -->
+        <p id="knowledge"></p>
+        <br><br>
+        <p id="date"></p>
+        <p id="location"></p>
+        <br>
+        <p id="signature"></p>
+        <p id="book"></p>
+    </div>
+
+    <script>
+        const url = "https://dailyknowledge-dxlc6dlhaq-uw.a.run.app"
+
+        function fetchKnowledge(language) {
+            fetch(`${url}/get_knowledge?lang=${language}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error(data.error);
+                        return;
+                    }
+                    document.getElementById('knowledgeTitle').innerHTML = data.title;
+                    document.getElementById('date').innerHTML = data.date;
+                    document.getElementById('location').innerHTML = data.location;
+                    data.knowledge = data.knowledge.replace(/(?:\r\n|\r|\n)/g, "<br>")
+                    document.getElementById('knowledge').innerHTML = data.knowledge;
+                    document.getElementById('signature').innerHTML = `<i>${data.signature}</i>`;
+                    document.getElementById('book').innerHTML = `<i><a href="${data.book_link}">${data.book_title}</a></i>`
+                    const audioSource = document.getElementById('audioSource');
+                    const audio = document.getElementById('knowledgeAudio');
+                    audioSource.src = url + data.audio;
+                    knowledgeAudio.load();
+                    document.getElementById('box').scrollTop = 0;
+                })
+                .catch(err => console.error('Error fetching knowledge:', err));
+        }
+
+        function changeLanguage() {
+            const selectedLang = document.getElementById('languageSelect').value;
+            fetchKnowledge(selectedLang);
+        }
+
+        // On page load, determine language from URL or default to English
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const lang = urlParams.get('lang') || 'en';
+            document.getElementById('languageSelect').value = lang;
+            fetchKnowledge(lang);
+        };
+    </script>
+</body>
+</html>
